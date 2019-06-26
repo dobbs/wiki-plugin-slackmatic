@@ -1,0 +1,37 @@
+{
+  "title": "About Slackmatic Plugin",
+  "story": [
+  {
+    "type": "paragraph",
+    "id": "d2fe8ca42aaae8f0",
+    "text": "Here we describe the purpose of the plugin and include a sample."
+  },
+  {
+    "type": "slackmatic",
+    "id": "3cd06f5c05c1c0dd",
+    "text": "This is text in the new plugin. You can *double-click* to edit it too."
+  }
+],
+  "journal": [
+  {
+    "type": "create",
+    "item": {
+      "title": "About Slackmatic Plugin",
+      "story": [
+  {
+    "type": "paragraph",
+    "id": "d2fe8ca42aaae8f0",
+    "text": "Here we describe the purpose of the plugin and include a sample."
+  },
+  {
+    "type": "slackmatic",
+    "id": "3cd06f5c05c1c0dd",
+    "text": "This is text in the new plugin. You can *double-click* to edit it too."
+  }
+]
+    },
+    "date": 1561556846000,
+    "certificate": "from mkplugin.sh"
+  }
+]
+}
