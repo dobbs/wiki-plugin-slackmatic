@@ -21,8 +21,8 @@ module.exports = function (grunt) {
 
     watch: {
       all: {
-        files: ['client/*.js', 'test/*.js', 'server/*.js'],
-        tasks: ['mochaTest']
+        files: ['client/client.js', 'test/*.js', 'server/*.js'],
+        tasks: ['build']
       }
     }
   });
