@@ -17,6 +17,9 @@
   "scripts": {
     "test": "mocha"
   },
+  "dependencies": {
+    "slack": "^11.0.2"
+  },
   "devDependencies": {
     "expect.js": "^0.3.1",
     "grunt": "^1.0.1",
