@@ -4,8 +4,7 @@
   var bind, emit, expand;
 
   const registerCustomElements = (document, customElements) => {
-    var CryptoJS = require('crypto-js')
-    console.log({CryptoJS})
+    const CryptoJS = require('crypto-js')
 
     const editorTemplate = document.createElement('template')
     editorTemplate.innerHTML = `
@@ -22,22 +21,32 @@
     class SlackmaticEditor extends HTMLElement {
       constructor() {
         super()
+        this.wikiItem = {}
         this.attachShadow({mode: 'open'})
         this.shadowRoot.appendChild(editorTemplate.content.cloneNode(true))
       }
 
+      set item (obj) { this.wikiItem = obj }
+      get item () { return this.wikiItem }
+      set saveHandler(fn) { this.save = fn }
+      get saveHandler() { return this.save }
+
       connectedCallback() {
         if (super.connectedCallback)
           super.connectedCallback()
-        console.log({
-          THIS: this,
-          shadowRoot: this.shadowRoot,
-          querySelector: this.shadowRoot.querySelector
-        })
-        this.shadowRoot.querySelector('form').addEventListener('submit', event => {
+        if (this.item.hello)
+          this.shadowRoot.querySelector('input[name=hello]').value = this.item.hello
+        const form = this.shadowRoot.querySelector('form')
+        form.addEventListener('submit', event => {
           event.preventDefault()
           event.stopPropagation()
-          console.log('save', {event})
+          const newValues = Array.from(form.elements).reduce((all, item) => {
+            if (item.name)
+              all[item.name] = item.value
+            return all
+          }, {})
+          const newItem = Object.assign({}, this.item, newValues)
+          this.save(newItem)
         })
       }
     }
@@ -56,13 +65,22 @@
   emit = ($item, item) => {
     return $item.append(`
       <p style="background-color:#eee;padding:15px;">
-        ${expand(item.text || 'intentionally blank')}
+        ${expand(`text: ${item.text ||'intentionally blank'} hello: ${item.hello || 'null'}`)}
       </p>`)
   }
 
   bind = function($item, item) {
     return $item.dblclick(() => {
-      $item.html('<slackmatic-editor></slackmatic-editor>')
+      const editor = document.createElement('slackmatic-editor')
+      editor.item = item
+      editor.saveHandler = newItem => {
+        wiki.pageHandler.put($item.parents('.page:first'), {
+          type: 'edit',
+          id: newItem.id,
+          item: newItem
+        })
+      }
+      $item.html(editor)
     })
   }
 
