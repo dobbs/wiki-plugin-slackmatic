@@ -2,7 +2,7 @@
 // see http://mochajs.org/
 
 (function() {
-  const slackmatic = require('../client/slackmatic'),
+  const slackmatic = require('../client/client'),
         expect = require('expect.js');
 
   describe('slackmatic plugin', () => {

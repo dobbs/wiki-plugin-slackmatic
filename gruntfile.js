@@ -1,4 +1,5 @@
 module.exports = function (grunt) {
+  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-mocha-test');
@@ -14,6 +15,9 @@ module.exports = function (grunt) {
       }
     },
 
+    browserify: {
+      "client/slackmatic.js": ['client/client.js']
+    },
 
     watch: {
       all: {
@@ -23,7 +27,7 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('build', ['mochaTest']);
+  grunt.registerTask('build', ['mochaTest', 'browserify']);
   grunt.registerTask('default', ['build']);
 
 };
