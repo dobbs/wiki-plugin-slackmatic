@@ -1,5 +1,6 @@
 {
   "name": "Slackmatic",
   "title": "Slackmatic Plugin",
-  "category": "other"
+  "category": "other",
+  "customEditor": true
 }
