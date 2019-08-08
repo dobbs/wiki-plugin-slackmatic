@@ -4,7 +4,6 @@
   var bind, emit, expand, template, editor;
 
   const moment = require('moment')
-  const CryptoJS = require('crypto-js')
 
   const createTemplate = document => {
     const display = document.createElement('template')
@@ -38,29 +37,34 @@
 
   emit = ($item, item) => {
     $item.html(template.display.content.cloneNode(true))
-    $item.find('[data-id=message]').html(expand(item.token || ''))
+    let token = localStorage.getItem('slackbot-token')
+    if (token)
+      $item.find('[data-id=message]').html('<i>active</i>')
+    else
+      $item.find('[data-id=message]').html('<i style="color: red">missing token</i>')
   }
 
   editor = ($item, item) => {
     $item.html(template.editor.content.cloneNode(true))
     const form = $item.find('form')[0]
-    form.token.value = item.token || ''
+    form.token.value = localStorage.getItem('slackbot-token') || ''
     form.addEventListener('submit', event => {
       event.stopPropagation()
       event.preventDefault()
-      const newEntries = Array.from(form.elements).reduce((all, input) => {
-        if (input.name)
-          all[input.name] = input.value
-        return all
-      }, {})
-      const newItem = Object.assign({}, item, newEntries)
-      wiki.pageHandler.put($item.parents('.page:first'), {
-        type: 'edit',
-        id: newItem.id,
-        item: newItem
-      })
-      emit($item, newItem)
-      bind($item, newItem)
+      let formData = Object.fromEntries(new FormData(form).entries())
+      localStorage.setItem('slackbot-token', formData.token)
+      if (! item.slackmatic || item.slackmatic != 'token') {
+        wiki.pageHandler.put($item.parents('.page:first'), {
+          type: 'edit',
+          id: item.id,
+          item: {
+            ...item,
+            slackmatic: 'token'
+          }
+        })
+      }
+      emit($item, item)
+      bind($item, item)
     })
   }
 
@@ -126,7 +130,7 @@
       let {channel, timestamp} = parseSlackURL(url)
       let oldest = timestamp.format('X')
       console.log({where:'slackmatic bind', url, channel, oldest})
-      let token = item.token
+      let token = localStorage.getItem('slackbot-token')
       let history
       try {
         history = await conversationHistory({token, channel, oldest})
