@@ -6,12 +6,12 @@
 
   const startServer = async ({app, argv}) => {
 
-    app.post('/plugin/slackapi/echo', (req, res) => {
+    app.post('/plugin/slackmatic/echo', (req, res) => {
       let {body} = req
       return res.json({body})
     })
 
-    app.post('/plugin/slackapi/users.conversations', async (req, res) => {
+    app.post('/plugin/slackmatic/users.conversations', async (req, res) => {
       let {token}  = req.body
       try {
         let slackres = await slack.users.conversations({token})
@@ -21,7 +21,7 @@
       }
     })
 
-    app.post('/plugin/slackapi/conversations.history', async (req, res) => {
+    app.post('/plugin/slackmatic/conversations.history', async (req, res) => {
       let {token, channel, oldest, latest, title, cursor}  = req.body
       let slackres
       try {
