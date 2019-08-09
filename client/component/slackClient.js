@@ -22,8 +22,9 @@ const transformSlackToPage = (title, json) => {
       }
       return {
         id,
-        type: 'paragraph',
-        text: `${speaker} [[${displayTime}]] ${body}`,
+        type: 'slackmatic',
+        slackmatic: 'message',
+        text: `${speaker} ${displayTime} ${body}`,
         slack: message,
         speaker,
         timestamp,
