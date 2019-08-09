@@ -49,9 +49,9 @@ const conversationHistory = async ({token, channel, oldest='', latest='', cursor
   return await res.json()
 }
 
-const isSlackRE = /https:\/\/[^.]+\.slack\.com\/archives\//
+const isSlackArchiveUrlRE = /https:\/\/[^.]+\.slack\.com\/archives\//
 
-const parseSlackURL = (url) => {
+const parseSlackArchiveURL = (url) => {
   let [channel, messageId] = url.split('/').slice(4)
   let timestamp = moment(parseInt(messageId.substr(1))/1000, 'x')
   return {channel, timestamp}
@@ -63,13 +63,20 @@ const onDragover = event => {
 }
 
 const onDrop = async event => {
+  // TODO: separate these concerns
+  // browser drop event management & data extraction
+  // transformation of slack archive url into slack conversation API request
+  // transformation of slack API response into wiki page
+  // rendering page result
+  // rendering error result for confusing input
+  // reporting errors when any of the above fail
   event.preventDefault()
   event.stopPropagation()
   const dataTransfer = event.dataTransfer
   if (dataTransfer) {
     let url = dataTransfer.getData('text')
-    if (isSlackRE.test(url)) {
-      let {channel, timestamp} = parseSlackURL(url)
+    if (isSlackArchiveUrlRE.test(url)) {
+      let {channel, timestamp} = parseSlackArchiveURL(url)
       let oldest = timestamp.format('X')
       console.log({where:'slackClient onDrop', url, channel, oldest})
       let token = localStorage.getItem('slackbot-token')
