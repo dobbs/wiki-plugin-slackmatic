@@ -4,13 +4,14 @@ const moment = require('moment')
 
 const transformSlackToPage = (title, json) => {
   let messages = (json.messages||[]).reverse()
+  let {baseurl} = json
   return {
     title: title,
     story: messages.map(message => {
       let speaker = message.user || message.bot_id
       speaker = (speaker) ? `<@${speaker}>` : 'unknown'
       let timestamp = moment.unix(message.ts)
-      let id = Math.floor(timestamp)
+      let id = message.ts.replace(/\./,'-')
       let displayTime = timestamp.format('h:mm:ss a')
       let body = message.text
       if (body === ''
@@ -26,6 +27,7 @@ const transformSlackToPage = (title, json) => {
         slackmatic: 'message',
         text: `${speaker} ${displayTime} ${body}`,
         slack: message,
+        url: `${baseurl}p${message.ts.replace(/\./,'')}`,
         speaker,
         timestamp,
         displayTime
@@ -47,15 +49,18 @@ const conversationHistory = async ({token, channel, oldest='', latest='', cursor
       cursor
     })
   })
-  return await res.json()
+  let json = await res.json()
+  return json
 }
 
 const isSlackArchiveUrlRE = /https:\/\/[^.]+\.slack\.com\/archives\//
 
 const parseSlackArchiveURL = (url) => {
   let [channel, messageId] = url.split('/').slice(4)
+  let [baseurl] = url.match(isSlackArchiveUrlRE)
+  baseurl = `${baseurl}${channel}/`
   let timestamp = moment(parseInt(messageId.substr(1))/1000, 'x')
-  return {channel, timestamp}
+  return {baseurl, channel, timestamp}
 }
 
 const onDragover = event => {
@@ -77,14 +82,15 @@ const onDrop = async event => {
   if (dataTransfer) {
     let url = dataTransfer.getData('text')
     if (isSlackArchiveUrlRE.test(url)) {
-      let {channel, timestamp} = parseSlackArchiveURL(url)
+      let {baseurl, channel, timestamp} = parseSlackArchiveURL(url)
       let oldest = timestamp.format('X')
       console.log({where:'slackClient onDrop', url, channel, oldest})
       let token = localStorage.getItem('slackbot-token')
-      let title = `Slack History ${timestamp.format('YYYY-MM-DD')}`
+      let title = `Slack ${timestamp.format('MMM-DD HH:MM:SS')}`
       let history
       try {
         history = await conversationHistory({token, channel, oldest})
+        history.baseurl = baseurl
         wiki.showResult(wiki.newPage(transformSlackToPage(title, history)))
       } catch (err) {
         console.log('slackmatic onDrop handler ERROR', {err, history})
