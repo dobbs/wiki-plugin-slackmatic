@@ -15,7 +15,7 @@ const moment = require('moment')
 // editor to annotate a message
 
 const annotate = text => text.replace(/\S+/g,'<span>$&</span>')
-const words = text => text.match(/(\S+)/g)
+const words = text => Array.from(text.match(/(\S+)/g))
 
 const emit = ($item, item) => {
   item.text
@@ -24,17 +24,37 @@ const emit = ($item, item) => {
     .forEach(p => $item.append(p))
 }
 
+const find = ($page, word) => {
+  let title = $page.data('data').title.replace(/\d\d:\d\d:\d\d/, word)
+  const story = $page.find('.item.slackmatic')
+        .filter((i, div) => {
+          const item = $(div).data('item')
+          return words(item.text).includes(word)
+        })
+        .map(function () { return $(this).data('item') })
+        .get()
+  wiki.showResult(wiki.newPage({
+    title,
+    story,
+    journal: []
+  }))
+}
+
 const bind = ($item, item) => {
-  $item.click(event => {
+  $item.dblclick(event => {
     event.preventDefault()
     event.stopPropagation()
     if (event.target.tagName === 'SPAN') {
-      console.log({
-        where:'slackmatic-message click',
-        itemId: item.id,
-        word: event.target.innerText,
-      })
+      const word = event.target.innerText
+      const $page = $item.parents('.page:first')
+      find($page, word)
+    } else {
+      // TODO: editor
     }
+  })
+  $item.on('dragstart', event => {
+    console.log({where:'slackmatic message dragstart'})
+    event.dataTransfer.setData('text', item.url)
   })
 }
 
