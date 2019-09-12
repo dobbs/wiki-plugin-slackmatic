@@ -49,7 +49,7 @@ const bind = ($item, item) => {
       const $page = $item.parents('.page:first')
       find($page, word)
     } else {
-      // TODO: editor
+      wiki.textEditor($item, item, {append: true})
     }
   })
   $item.on('dragstart', event => {
