@@ -22,11 +22,24 @@
     })
 
     app.post('/plugin/slackmatic/conversations.history', async (req, res) => {
-      let {token, channel, oldest, latest, title, cursor}  = req.body
+      let {token, channel, oldest, latest, title, cursor, inclusive=true}  = req.body
       let slackres
       try {
         slackres = await slack.conversations.history({
-          token, channel, oldest, latest, cursor /* TODO how do we handle cursor? */
+          token, channel, oldest, latest, cursor, inclusive /* TODO how do we handle cursor? */
+        })
+        return res.json(slackres)
+      } catch (err) {
+        return res.json({err, response: slackres})
+      }
+    })
+
+    app.post('/plugin/slackmatic/conversations.replies', async (req, res) => {
+      let {token, channel, ts, oldest, latest, title, cursor, inclusive=true}  = req.body
+      let slackres
+      try {
+        slackres = await slack.conversations.replies({
+          token, channel, ts, oldest, latest, cursor, inclusive /* TODO how do we handle cursor? */
         })
         return res.json(slackres)
       } catch (err) {

@@ -36,7 +36,13 @@ const transformSlackToPage = (title, json) => {
   }
 }
 
-const conversationHistory = async ({token, channel, oldest='', latest='', cursor=''}) => {
+const conversationHistory = async ({
+  token, channel,
+  oldest='',
+  latest='',
+  cursor='',
+  inclusive=true
+}) => {
   let url = new URL('/plugin/slackmatic/conversations.history', window.location)
   let res = await fetch(url, {
     method: 'POST',
@@ -46,7 +52,33 @@ const conversationHistory = async ({token, channel, oldest='', latest='', cursor
       channel,
       oldest,
       latest,
-      cursor
+      cursor,
+      inclusive
+    })
+  })
+  let json = await res.json()
+  return json
+}
+
+const conversationReplies = async ({
+  token, channel, ts,
+  oldest='',
+  latest='',
+  cursor='',
+  inclusive=true
+}) => {
+  let url = new URL('/plugin/slackmatic/conversations.replies', window.location)
+  let res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      token,
+      channel,
+      ts,
+      oldest,
+      latest,
+      cursor,
+      inclusive
     })
   })
   let json = await res.json()
