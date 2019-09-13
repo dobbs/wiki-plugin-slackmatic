@@ -14,13 +14,46 @@ const moment = require('moment')
 // special click to change filter control
 // editor to annotate a message
 
+const expand = text => {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\*(.+?)\*/g, '<i>$1</i>');
+};
+
+const concatAttachments = attachments => attachments
+      .filter(it => it.text)
+      .map(it => it.text)
+      .join("\n")
+
+const transformMessageToItem = message => {
+  let speaker = message.user || message.bot_id
+  speaker = (speaker) ? `<@${speaker}>` : 'unknown'
+  let timestamp = moment.unix(message.ts)
+  let id = message.ts.replace(/\./,'-')
+  let displayTime = timestamp.format('h:mm:ss a')
+  let body = concatAttachments([message, ...(message.attachments||[])])
+  return {
+    id,
+    type: 'slackmatic',
+    slackmatic: 'message',
+    text: `${speaker} ${displayTime} ${body}`,
+    slack: message,
+    url: `${baseurl}p${message.ts.replace(/\./,'')}`,
+    speaker,
+    timestamp,
+    displayTime
+  }
+}
+
 const annotate = text => text.replace(/\S+/g,'<span>$&</span>')
 const words = text => Array.from(text.match(/(\S+)/g))
 
 const emit = ($item, item) => {
   item.text
     .split(/\n{2,}/)
-    .map(line => `<p>${annotate(line)}</p>`)
+    .map(line => `<p>${annotate(expand(line))}</p>`)
     .forEach(p => $item.append(p))
 }
 
@@ -60,5 +93,6 @@ const bind = ($item, item) => {
 
 module.exports = {
   emit,
-  bind
+  bind,
+  transformMessageToItem
 }

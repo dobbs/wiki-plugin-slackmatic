@@ -1,38 +1,14 @@
 "use strict";
 
 const moment = require('moment')
+const {transformMessageToItem} = require('./message.js')
 
 const transformSlackToPage = (title, json) => {
   let messages = (json.messages||[]).reverse()
   let {baseurl} = json
   return {
     title: title,
-    story: messages.map(message => {
-      let speaker = message.user || message.bot_id
-      speaker = (speaker) ? `<@${speaker}>` : 'unknown'
-      let timestamp = moment.unix(message.ts)
-      let id = message.ts.replace(/\./,'-')
-      let displayTime = timestamp.format('h:mm:ss a')
-      let body = message.text
-      if (body === ''
-          && message.attachments
-          && message.attachments.length > 0
-          && message.attachments[0].text
-         ) {
-        body = message.attachments[0].text
-      }
-      return {
-        id,
-        type: 'slackmatic',
-        slackmatic: 'message',
-        text: `${speaker} ${displayTime} ${body}`,
-        slack: message,
-        url: `${baseurl}p${message.ts.replace(/\./,'')}`,
-        speaker,
-        timestamp,
-        displayTime
-      }
-    })
+    story: messages.map(transformMessageToItem)
   }
 }
 
