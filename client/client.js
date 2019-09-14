@@ -2,6 +2,7 @@
 
 (function() {
   const dropZoneFactory = require('./component/dropZone.js')
+  const moreButtonFactory = require('./component/moreButton.js')
   const message = require('./component/message.js')
 
   const expand = text => {
@@ -12,22 +13,19 @@
       .replace(/\*(.+?)\*/g, '<i>$1</i>');
   };
 
-  const chooseComponent = (dz, m) => item => {
-    return (item.slackmatic && item.slackmatic === 'message')
-      ? m
-      : dz
-  }
-
   if (typeof window !== "undefined" && window !== null) {
     const dropZone = dropZoneFactory(document)
-    const chooseComponent = item => {
-      return (item.slackmatic && item.slackmatic === 'message')
-        ? message
-        : dropZone
-    }
+    const moreButton = moreButtonFactory(document)
+    const chooseComponent = ({slackmatic}) => ({
+      message,
+      moreButton,
+      token: dropZone
+    }[slackmatic] || dropZone)
+    const emit = ($item, item) => chooseComponent(item).emit($item, item)
+    const bind = ($item, item) => chooseComponent(item).bind($item, item)
     window.plugins.slackmatic = {
-      emit: ($item, item) => chooseComponent(item).emit($item, item),
-      bind: ($item, item) => chooseComponent(item).bind($item, item),
+      emit,
+      bind,
       editor: dropZone.editor
     }
   }

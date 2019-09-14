@@ -27,7 +27,7 @@ const concatAttachments = attachments => attachments
       .map(it => it.text)
       .join("\n")
 
-const transformMessageToItem = message => {
+const transformMessageToItem = ({baseurl, channel}) => message => {
   let speaker = message.user || message.bot_id
   speaker = (speaker) ? `<@${speaker}>` : 'unknown'
   let timestamp = moment.unix(message.ts)
@@ -41,6 +41,8 @@ const transformMessageToItem = message => {
     text: `${speaker} ${displayTime} ${body}`,
     slack: message,
     url: `${baseurl}p${message.ts.replace(/\./,'')}`,
+    baseurl,
+    channel,
     speaker,
     timestamp,
     displayTime

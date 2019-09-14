@@ -3,12 +3,19 @@
 const moment = require('moment')
 const {transformMessageToItem} = require('./message.js')
 
-const transformSlackToPage = (title, json) => {
-  let messages = (json.messages||[]).reverse()
-  let {baseurl} = json
+const transformSlackToPage = ({title, history, baseurl, channel}) => {
+  let {messages} = history
+  let story = (messages||[]).reverse().map(transformMessageToItem({baseurl, channel}))
+  story.push({
+    type: 'slackmatic',
+    slackmatic: 'moreButton',
+    text: 'intentionally blank',
+    baseurl,
+    channel
+  })
   return {
-    title: title,
-    story: messages.map(transformMessageToItem)
+    title,
+    story
   }
 }
 
@@ -98,8 +105,7 @@ const onDrop = async event => {
       let history
       try {
         history = await conversationHistory({token, channel, oldest})
-        history.baseurl = baseurl
-        wiki.showResult(wiki.newPage(transformSlackToPage(title, history)))
+        wiki.showResult(wiki.newPage(transformSlackToPage({title, history, baseurl, channel})))
       } catch (err) {
         console.log('slackmatic onDrop handler ERROR', {err, history})
       }
