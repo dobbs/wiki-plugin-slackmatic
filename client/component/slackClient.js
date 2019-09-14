@@ -3,15 +3,19 @@
 const moment = require('moment')
 const {transformMessageToItem} = require('./message.js')
 
-const transformSlackToPage = ({title, history, baseurl, channel}) => {
+const transformSlackToPage = ({history, title, baseurl, channel}) => {
   let {messages} = history
   let story = (messages||[]).reverse().map(transformMessageToItem({baseurl, channel}))
+  let last = story[story.length - 1]
   story.push({
     type: 'slackmatic',
     slackmatic: 'moreButton',
     text: 'intentionally blank',
+    title,
     baseurl,
-    channel
+    channel,
+    timestamp: last.timestamp,
+    last
   })
   return {
     title,
@@ -105,7 +109,7 @@ const onDrop = async event => {
       let history
       try {
         history = await conversationHistory({token, channel, oldest})
-        wiki.showResult(wiki.newPage(transformSlackToPage({title, history, baseurl, channel})))
+        wiki.showResult(wiki.newPage(transformSlackToPage({history, title, baseurl, channel})))
       } catch (err) {
         console.log('slackmatic onDrop handler ERROR', {err, history})
       }
@@ -123,7 +127,41 @@ const onDrop = async event => {
   }
 }
 
+const createMoreMessagesListener = ({$item, item}) => {
+  let currentStory = $item.closest('.page').data('data').story
+  let moreMessagesItem = currentStory.pop()
+  console.log({where:'moreMessages compare', moreMessagesItem, item})
+  let {title, channel, timestamp, baseurl} = item
+  let oldest = timestamp.format('X')
+  console.log({where:'slackClient moreMessages', title, channel, oldest})
+
+  return async event => {
+    event.preventDefault()
+    event.stopPropagation()
+    let token = localStorage.getItem('slackbot-token')
+    let inclusive = false
+    let history
+    try {
+      history = await conversationHistory({token, channel, oldest, inclusive})
+      let page = transformSlackToPage({history, title, baseurl, channel})
+      page.story = [...currentStory, ...(page.story)]
+      wiki.showResult(wiki.newPage(page))
+    } catch (err) {
+      wiki.showResult(wiki.newPage({
+        title: 'Slackmatic More Messages Failed',
+        story: [
+          {
+            type: 'markdown',
+            text: `couldn't get conversation.history with\n${JSON.stringify({channel, oldest, inclusive})}`
+          }
+        ]
+      }))
+    }
+  }
+}
+
 module.exports = {
   onDragover,
-  onDrop
+  onDrop,
+  createMoreMessagesListener
 }

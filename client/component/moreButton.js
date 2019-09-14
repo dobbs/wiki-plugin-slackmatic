@@ -1,5 +1,7 @@
 "use strict";
 
+const {createMoreMessagesListener} = require('./slackClient.js')
+
 module.exports = document => {
 
   const template = document.createElement('template')
@@ -18,11 +20,8 @@ module.exports = document => {
   const bind = ($item, item) => {
     let el = $item[0] // prefer ES6 to jQuery
     let form = el.querySelector('form')
-    form.addEventListener('submit', event => {
-      event.stopPropagation()
-      event.preventDefault()
-      console.log({where:'moreButton submit', form, item})
-    })
+    let listener = createMoreMessagesListener({$item, item})
+    form.addEventListener('submit', listener)
   }
 
   return {
