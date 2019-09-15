@@ -129,20 +129,21 @@ const onDrop = async event => {
 
 const createMoreMessagesListener = ({$item, item}) => {
   let currentStory = $item.closest('.page').data('data').story
-  let moreMessagesItem = currentStory.pop()
-  console.log({where:'moreMessages compare', moreMessagesItem, item})
+  // pop() twice to remove the moreButton item & because
+  // conversationHistory() below re-imports the last item.
+  // yet another off-by-one bug
+  currentStory.pop()
+  currentStory.pop()
   let {title, channel, timestamp, baseurl} = item
   let oldest = timestamp.format('X')
-  console.log({where:'slackClient moreMessages', title, channel, oldest})
 
   return async event => {
     event.preventDefault()
     event.stopPropagation()
     let token = localStorage.getItem('slackbot-token')
-    let inclusive = false
     let history
     try {
-      history = await conversationHistory({token, channel, oldest, inclusive})
+      history = await conversationHistory({token, channel, oldest})
       let page = transformSlackToPage({history, title, baseurl, channel})
       page.story = [...currentStory, ...(page.story)]
       wiki.showResult(wiki.newPage(page))
