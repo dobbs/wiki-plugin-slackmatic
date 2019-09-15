@@ -7,17 +7,46 @@ const concatAttachments = attachments => attachments
       .map(it => it.text)
       .join("\n")
 
-module.exports = ({baseurl, channel}) => message => {
-  let speaker = message.user || message.bot_id
+const transformMessageBasics = ({user, ts, thread_ts, bot_id}, {baseurl, channel}) => {
+  let speaker = user || bot_id
   speaker = (speaker) ? `<@${speaker}>` : 'unknown'
-  let timestamp = moment.unix(message.ts)
-  let id = message.ts.replace(/\./,'-')
+  let timestamp = moment.unix(ts)
+  let id = `${channel}-${ts.replace(/\./,'-')}`
   let displayTime = timestamp.format('h:mm:ss a')
-  let body = concatAttachments([message, ...(message.attachments||[])])
-  let hasThread = message.hasOwnProperty('thread_ts') &&
-      message.thread_ts === message.ts
+  let hasThread = thread_ts !== undefined && thread_ts === ts
+  let url = `${baseurl}p${ts.replace(/\./, '')}`
+  if (hasThread)
+    url += `?thread_ts=${thread_ts}&cid=${channel}`
+  return {id, speaker, timestamp, displayTime, hasThread, url}
+}
 
-  return {
+module.exports = ({baseurl, channel}) => message => {
+  const {id, speaker, timestamp, displayTime, hasThread, url} =
+        transformMessageBasics(message, {baseurl, channel})
+  const {ts, thread_ts} = message
+  let body = concatAttachments([message, ...(message.attachments||[])])
+  let replies = (message.replies||[]).map(reply => {
+    let {id, speaker, timestamp, displayTime, hasThread, url} =
+        transformMessageBasics({...reply, thread_ts:message.thread_ts},
+                               {baseurl, channel})
+    return {
+      id,
+      type: 'slackmatic',
+      slackmatic: 'message',
+      text: `${speaker} ${displayTime} ...`,
+      slack:reply,
+      hasThread,
+      url,
+      baseurl,
+      channel,
+      speaker,
+      timestamp,
+      displayTime,
+      isReply: true
+    }
+  })
+
+  return [{
     id,
     type: 'slackmatic',
     slackmatic: 'message',
@@ -29,6 +58,7 @@ module.exports = ({baseurl, channel}) => message => {
     channel,
     speaker,
     timestamp,
-    displayTime
-  }
+    displayTime,
+    isReply: false
+  }, ...replies]
 }

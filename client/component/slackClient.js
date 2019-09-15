@@ -5,7 +5,7 @@ const transformMessageToItem = require('./transformMessageToItem.js')
 
 const transformSlackToPage = ({history, title, baseurl, channel}) => {
   let {messages} = history
-  let story = (messages||[]).reverse().map(transformMessageToItem({baseurl, channel}))
+  let story = (messages||[]).reverse().flatMap(transformMessageToItem({baseurl, channel}))
   let last = story[story.length - 1]
   story.push({
     type: 'slackmatic',

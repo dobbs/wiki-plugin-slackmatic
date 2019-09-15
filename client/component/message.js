@@ -31,6 +31,9 @@ const emit = ($item, item) => {
     .split(/\n{2,}/)
     .map(line => `<p>${annotate(expand(line))}</p>`)
     .forEach(p => $item.append(p))
+  if (item.isReply) {
+    $item.css({paddingLeft:'30pt'})
+  }
 }
 
 const find = ($page, word) => {
