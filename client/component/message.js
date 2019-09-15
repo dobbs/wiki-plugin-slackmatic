@@ -87,10 +87,6 @@ const bind = ($item, item) => {
       wiki.textEditor($item, item, {append: true})
     }
   })
-  $item.on('dragstart', event => {
-    console.log({where:'slackmatic message dragstart'})
-    event.dataTransfer.setData('text', item.url)
-  })
 }
 
 module.exports = {
