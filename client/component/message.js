@@ -1,6 +1,7 @@
 "use strict";
 
 const moment = require('moment')
+const transformMessageToItem = require('./transformMessageToItem.js')
 
 // TODO: high expectations for interacting with messages
 // transform slack message into wiki item
@@ -21,33 +22,6 @@ const expand = text => {
     .replace(/>/g, '&gt;')
     .replace(/\*(.+?)\*/g, '<i>$1</i>');
 };
-
-const concatAttachments = attachments => attachments
-      .filter(it => it.text)
-      .map(it => it.text)
-      .join("\n")
-
-const transformMessageToItem = ({baseurl, channel}) => message => {
-  let speaker = message.user || message.bot_id
-  speaker = (speaker) ? `<@${speaker}>` : 'unknown'
-  let timestamp = moment.unix(message.ts)
-  let id = message.ts.replace(/\./,'-')
-  let displayTime = timestamp.format('h:mm:ss a')
-  let body = concatAttachments([message, ...(message.attachments||[])])
-  return {
-    id,
-    type: 'slackmatic',
-    slackmatic: 'message',
-    text: `${speaker} ${displayTime} ${body}`,
-    slack: message,
-    url: `${baseurl}p${message.ts.replace(/\./,'')}`,
-    baseurl,
-    channel,
-    speaker,
-    timestamp,
-    displayTime
-  }
-}
 
 const annotate = text => text.replace(/\S+/g,'<span>$&</span>')
 const words = text => Array.from(text.match(/(\S+)/g))
@@ -91,6 +65,5 @@ const bind = ($item, item) => {
 
 module.exports = {
   emit,
-  bind,
-  transformMessageToItem
+  bind
 }

@@ -1,7 +1,7 @@
 "use strict";
 
 const moment = require('moment')
-const {transformMessageToItem} = require('./message.js')
+const transformMessageToItem = require('./transformMessageToItem.js')
 
 const transformSlackToPage = ({history, title, baseurl, channel}) => {
   let {messages} = history
@@ -135,7 +135,7 @@ const createMoreMessagesListener = ({$item, item}) => {
   currentStory.pop()
   currentStory.pop()
   let {title, channel, timestamp, baseurl} = item
-  let oldest = timestamp.format('X')
+  let oldest = moment(timestamp).format('X')
 
   return async event => {
     event.preventDefault()
