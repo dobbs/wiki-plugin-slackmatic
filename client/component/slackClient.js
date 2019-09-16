@@ -141,23 +141,26 @@ const createMoreMessagesListener = ({$item, item}) => {
     event.preventDefault()
     event.stopPropagation()
     let token = localStorage.getItem('slackbot-token')
-    let history
+    let history, page
     try {
       history = await conversationHistory({token, channel, oldest})
-      let page = transformSlackToPage({history, title, baseurl, channel})
+      page = transformSlackToPage({history, title, baseurl, channel})
       page.story = [...currentStory, ...(page.story)]
-      wiki.showResult(wiki.newPage(page))
     } catch (err) {
-      wiki.showResult(wiki.newPage({
+      let details = JSON.stringify({channel, oldest, error: err}, null, 2)
+      page = {
         title: 'Slackmatic More Messages Failed',
         story: [
           {
-            type: 'markdown',
-            text: `couldn't get conversation.history with\n${JSON.stringify({channel, oldest, inclusive})}`
+            type: 'code',
+            text: `couldn't get conversation.history with\n${details}`
           }
         ]
-      }))
+      }
     }
+    wiki.showResult(wiki.newPage(page))
+  }
+}
   }
 }
 
