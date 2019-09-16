@@ -161,11 +161,63 @@ const createMoreMessagesListener = ({$item, item}) => {
     wiki.showResult(wiki.newPage(page))
   }
 }
+
+const createRepliesListener = ({$item:$parent, item:parent}) => {
+  const $page = $parent.closest('.page')
+  const currentStory = $page.data('data').story
+  const promisesNotStarted = currentStory
+    .filter(({hasThread}) => hasThread)
+    .map(item => async token => {
+      const {baseurl, channel, slack:{ts}} = item
+      try {
+        let replies = await conversationReplies({token, channel, ts})
+        return {baseurl, channel, replies}
+      } catch (err) {
+        return [{
+          message: 'Slackmatic failed to load replies',
+          details: {channel, ts},
+          err
+        }]
+      }
+    })
+  return async event => {
+    event.preventDefault()
+    event.stopPropagation()
+    let token = localStorage.getItem('slackbot-token')
+    let allReplies = await Promise.all(promisesNotStarted.map(fn => fn(token)))
+    // this destructuring bind knows A LOT about the structure of allReplies
+    // probably brittle
+    allReplies.forEach(({baseurl, channel, replies:{messages:[parent, ...replies]}}) => {
+      let fn = transformMessageToItem({baseurl, channel})
+      console.log({where:'load replies iterating', replies})
+      replies.flatMap(fn).forEach(newitem => {
+        let itemToUpdate = currentStory.find(item => item.id === newitem.id)
+        console.log({where:'transformed replies', newitem, itemToUpdate})
+        itemToUpdate.slack = newitem.slack
+        itemToUpdate.text = newitem.text
+      })
+    })
+    let newPage = $page.data('data')
+    let {title, story} = newPage
+    let last = story[story.length - 1]
+    let {baseurl, channel} = last
+    story.push({
+      type: 'slackmatic',
+      slackmatic: 'moreButton',
+      text: 'intentionally blank',
+      title,
+      baseurl,
+      channel,
+      timestamp: last.timestamp,
+      last
+    })
+    wiki.showResult(wiki.newPage(newPage))
   }
 }
 
 module.exports = {
   onDragover,
   onDrop,
-  createMoreMessagesListener
+  createMoreMessagesListener,
+  createRepliesListener
 }

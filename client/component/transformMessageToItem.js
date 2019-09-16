@@ -20,32 +20,33 @@ const transformMessageBasics = ({user, ts, thread_ts, bot_id}, {baseurl, channel
   return {id, speaker, timestamp, displayTime, hasThread, url}
 }
 
-module.exports = ({baseurl, channel}) => message => {
+const transformReplyToItem = ({baseurl, channel, thread_ts}) => reply => {
+  let {id, speaker, timestamp, displayTime, hasThread, url} =
+      transformMessageBasics({...reply, thread_ts}, {baseurl, channel})
+  return {
+    id,
+    type: 'slackmatic',
+    slackmatic: 'message',
+    text: `${speaker} ${displayTime} ...`,
+    slack:reply,
+    hasThread,
+    url,
+    baseurl,
+    channel,
+    speaker,
+    timestamp,
+    displayTime,
+    isReply: true
+  }
+}
+
+const transformMessageToItem = ({baseurl, channel}) => message => {
   const {id, speaker, timestamp, displayTime, hasThread, url} =
         transformMessageBasics(message, {baseurl, channel})
   const {ts, thread_ts} = message
   let body = concatAttachments([message, ...(message.attachments||[])])
-  let replies = (message.replies||[]).map(reply => {
-    let {id, speaker, timestamp, displayTime, hasThread, url} =
-        transformMessageBasics({...reply, thread_ts:message.thread_ts},
-                               {baseurl, channel})
-    return {
-      id,
-      type: 'slackmatic',
-      slackmatic: 'message',
-      text: `${speaker} ${displayTime} ...`,
-      slack:reply,
-      hasThread,
-      url,
-      baseurl,
-      channel,
-      speaker,
-      timestamp,
-      displayTime,
-      isReply: true
-    }
-  })
-
+  let replies = (message.replies||[])
+      .map(transformReplyToItem({baseurl, channel, thread_ts}))
   return [{
     id,
     type: 'slackmatic',
@@ -62,3 +63,6 @@ module.exports = ({baseurl, channel}) => message => {
     isReply: false
   }, ...replies]
 }
+
+
+module.exports = transformMessageToItem
