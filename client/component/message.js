@@ -1,6 +1,7 @@
 "use strict";
 
 const moment = require('moment')
+const marked = require('marked')
 const transformMessageToItem = require('./transformMessageToItem.js')
 
 // TODO: high expectations for interacting with messages
@@ -15,22 +16,18 @@ const transformMessageToItem = require('./transformMessageToItem.js')
 // special click to change filter control
 // editor to annotate a message
 
-const expand = text => {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*(.+?)\*/g, '<i>$1</i>');
-};
+const markedOptions = {
+  gfm: true,
+  sanitize: true,
+  linksInNewTab: true,
+  breaks: true
+}
 
 const annotate = text => text.replace(/\S+/g,'<span>$&</span>')
 const words = text => Array.from(text.match(/(\S+)/g))
 
 const emit = ($item, item) => {
-  item.text
-    .split(/\n{2,}/)
-    .map(line => `<p>${annotate(expand(line))}</p>`)
-    .forEach(p => $item.append(p))
+  $item.append(marked(item.text, markedOptions))
   if (item.isReply) {
     $item.css({paddingLeft:'30pt'})
   }
