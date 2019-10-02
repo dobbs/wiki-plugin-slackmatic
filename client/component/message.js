@@ -5,11 +5,7 @@ const marked = require('marked')
 const transformMessageToItem = require('./transformMessageToItem.js')
 
 // TODO: high expectations for interacting with messages
-// transform slack message into wiki item
 // observe filter control & adapt display accordingly
-// render images
-// render slack markdown
-// activate links
 // replace emoji
 // replace at-mentions
 // compute delta times from zero in filter control
@@ -18,7 +14,6 @@ const transformMessageToItem = require('./transformMessageToItem.js')
 
 const markedOptions = {
   gfm: true,
-  sanitize: true,
   linksInNewTab: true,
   breaks: true
 }
@@ -30,6 +25,19 @@ const emit = ($item, item) => {
   $item.append(marked(item.text, markedOptions))
   if (item.isReply) {
     $item.css({paddingLeft:'30pt'})
+  }
+  if (item.slack && item.slack.attachments) {
+    const {attachments} = item.slack
+    const $domFragment = attachments.reduce((acc, attachment) => {
+      const {image_url, fallback} = attachment
+      if (image_url) {
+        acc.push($(`<div><img alt="${fallback}" src="${image_url}" width="100%">\n</div>`))
+      } else {
+        console.log({item, unrenderedAttachment: attachment})
+      }
+      return acc
+    }, [])
+    $item.append($domFragment)
   }
 }
 
