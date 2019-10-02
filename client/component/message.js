@@ -2,6 +2,7 @@
 
 const moment = require('moment')
 const marked = require('marked')
+const DOMPurify = require('dompurify')
 const transformMessageToItem = require('./transformMessageToItem.js')
 
 // TODO: high expectations for interacting with messages
@@ -22,7 +23,7 @@ const annotate = text => text.replace(/\S+/g,'<span>$&</span>')
 const words = text => Array.from(text.match(/(\S+)/g))
 
 const emit = ($item, item) => {
-  $item.append(marked(item.text, markedOptions))
+  $item.append(DOMPurify.sanitize(marked(item.text, markedOptions)))
   if (item.isReply) {
     $item.css({paddingLeft:'30pt'})
   }
