@@ -9,9 +9,9 @@
     "plugin"
   ],
   "author": {
-    "name": "Your Name",
-    "email": "you@example.com",
-    "url": "http://example.com"
+    "name": "Eric Dobbs",
+    "email": "eric@dobbse.net",
+    "url": "http://wiki.dbbs.co"
   },
   "contributors": [],
   "scripts": {
@@ -42,6 +42,6 @@
     "url": "https://github.com/fedwiki/wiki-plugin-slackmatic/issues"
   },
   "engines": {
-    "node": ">=0.10"
+    "node": ">=10"
   }
 }
