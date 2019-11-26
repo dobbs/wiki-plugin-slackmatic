@@ -18,7 +18,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "dompurify": "^2.0.3",
+    "dompurify": "^2.0.7",
     "marked": "^0.7.0",
     "moment": "^2.24.0",
     "slack": "^11.0.2"
